@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <title>Flashback ⚡</title>
+        <link rel="icon" href="images/the-flash-sign.png" />
+        <!-- MDL
+             The library relies on Google's Material Design fonts, icons, and the CSS
+             of Google's Material Design Lite implementation. Load these as follows.
+           -->
+        <!-- link href='https://fonts.googleapis.com/css?family=Roboto:400,300,500|Roboto+Mono|Roboto+Condensed:400,700&subset=latin,latin-ext' rel='stylesheet'
+             type='text/css' -->
+        <link href='assets/roboto-400-300-500.css' rel='stylesheet' type='text/css'>
+        <!-- link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" -->
+        <link rel="stylesheet" href="assets/material-icons.css" />
+        <!-- link rel="stylesheet" href="https://code.getmdl.io/1.2.0/material.cyan-light_blue.min.css" / -->
+        <link rel="stylesheet" href="assets/material.cyan-light_blue.min.css" />
+
+        <!-- Dialogs
+             The Dialog component requires a polyfill on most browsers. If your app
+             uses Dialogs and is expected to work outside Google Chrome, get the
+             polyfill at the URL below and load as follows.
+
+             https://github.com/GoogleChrome/dialog-polyfill
+           -->
+        <!--
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.4/dialog-polyfill.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.4/dialog-polyfill.min.css" />
+        -->
+        <script src="assets/dialog-polyfill.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="assets/dialog-polyfill.min.css" />
+
+        <!-- Event.focusin
+             Polyfill required for Firefox to support focusin and focusout events
+           -->
+        <!-- <script src="https://cdn.polyfill.io/v2/polyfill.js?features=Event.focusin"></script> -->
+        <script src="assets/event-focusin.js"></script>
+
+    </head>
+
+    <body>
+        <script src="./scripts/flashback.js"></script>
+    </body>
+
+    <script>
+        var app = Elm.Main.fullscreen();
+
+        var wasSpeaking = false;
+
+        app.ports.windowOpen.subscribe(function(url) {
+            window.open(url, true);
+        });
+        app.ports.title.subscribe(function(title) {
+            document.title = title;
+        });
+
+        app.ports.mute.subscribe(function(mute) {
+            if (mute) {
+                window.speechSynthesis.cancel();
+                wasSpeaking = false;
+            } else {
+                app.ports.reset.send([]);
+            }
+        });
+
+        app.ports.checkSpeech.subscribe(function(u) {
+            if (wasSpeaking && !window.speechSynthesis.speaking) {
+                app.ports.reset.send([]);
+                wasSpeaking = false;
+            } else if (!wasSpeaking) {
+                app.ports.reset.send([]);
+            }
+        });
+
+        app.ports.say.subscribe(function(msg) {
+            //console.log(msg);
+
+            var utt = new SpeechSynthesisUtterance(msg);
+            var voices = window.speechSynthesis.getVoices();
+
+            //voices.forEach(function(voice) {
+            //  console.log(voice.name, voice.default ? '(default)' : '');
+            //});
+
+            utt.voice = voices[1];
+
+            window.speechSynthesis.speak(utt);
+            wasSpeaking = true;
+        });
+
+        app.ports.reset.send([]);
+    </script>
+</html>
